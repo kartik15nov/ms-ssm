@@ -1,7 +1,7 @@
 package com.ub.msssm.config;
 
-import com.ub.msssm.domain.PaymentEvents;
-import com.ub.msssm.domain.PaymentStates;
+import com.ub.msssm.domain.PaymentEvent;
+import com.ub.msssm.domain.PaymentState;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,23 +14,23 @@ import java.util.UUID;
 class StateMachineConfigTest {
 
     @Autowired
-    StateMachineFactory<PaymentStates, PaymentEvents> factory;
+    StateMachineFactory<PaymentState, PaymentEvent> factory;
 
     @Test
     void testNewStateMachine() {
-        StateMachine<PaymentStates, PaymentEvents> stateMachine = factory.getStateMachine(UUID.randomUUID());
+        StateMachine<PaymentState, PaymentEvent> stateMachine = factory.getStateMachine(UUID.randomUUID());
 
         stateMachine.start();
 
         System.out.println("Initial State : " + stateMachine.getState().toString());
 
-        stateMachine.sendEvent(PaymentEvents.PRE_AUTHORIZE);
+        stateMachine.sendEvent(PaymentEvent.PRE_AUTHORIZE);
         System.out.println("Current State : " + stateMachine.getState().toString());
 
-        stateMachine.sendEvent(PaymentEvents.PRE_AUTH_APPROVED);
+        stateMachine.sendEvent(PaymentEvent.PRE_AUTH_APPROVED);
         System.out.println("Current State : " + stateMachine.getState().toString());
 
-        stateMachine.sendEvent(PaymentEvents.PRE_AUTH_DECLINED);
+        stateMachine.sendEvent(PaymentEvent.PRE_AUTH_DECLINED);
         System.out.println("Current State : " + stateMachine.getState().toString());
     }
 }

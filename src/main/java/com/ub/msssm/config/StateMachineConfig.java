@@ -1,7 +1,7 @@
 package com.ub.msssm.config;
 
-import com.ub.msssm.domain.PaymentEvents;
-import com.ub.msssm.domain.PaymentStates;
+import com.ub.msssm.domain.PaymentEvent;
+import com.ub.msssm.domain.PaymentState;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
@@ -18,33 +18,33 @@ import java.util.EnumSet;
 @Slf4j
 @EnableStateMachineFactory
 @Configuration
-public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentStates, PaymentEvents> {
+public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentState, PaymentEvent> {
 
     @Override
-    public void configure(StateMachineStateConfigurer<PaymentStates, PaymentEvents> states) throws Exception {
+    public void configure(StateMachineStateConfigurer<PaymentState, PaymentEvent> states) throws Exception {
         states.withStates()
-                .initial(PaymentStates.NEW)
-                .states(EnumSet.allOf(PaymentStates.class))
-                .end(PaymentStates.AUTH)
-                .end(PaymentStates.AUTH_ERROR)
-                .end(PaymentStates.PRE_AUTH_ERROR);
+                .initial(PaymentState.NEW)
+                .states(EnumSet.allOf(PaymentState.class))
+                .end(PaymentState.AUTH)
+                .end(PaymentState.AUTH_ERROR)
+                .end(PaymentState.PRE_AUTH_ERROR);
     }
 
     @Override
-    public void configure(StateMachineTransitionConfigurer<PaymentStates, PaymentEvents> transitions) throws Exception {
+    public void configure(StateMachineTransitionConfigurer<PaymentState, PaymentEvent> transitions) throws Exception {
         transitions
-                .withExternal().source(PaymentStates.NEW).target(PaymentStates.NEW).event(PaymentEvents.PRE_AUTHORIZE)
+                .withExternal().source(PaymentState.NEW).target(PaymentState.NEW).event(PaymentEvent.PRE_AUTHORIZE)
                 .and()
-                .withExternal().source(PaymentStates.NEW).target(PaymentStates.PRE_AUTH).event(PaymentEvents.PRE_AUTH_APPROVED)
+                .withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH).event(PaymentEvent.PRE_AUTH_APPROVED)
                 .and()
-                .withExternal().source(PaymentStates.NEW).target(PaymentStates.AUTH_ERROR).event(PaymentEvents.PRE_AUTH_DECLINED);
+                .withExternal().source(PaymentState.NEW).target(PaymentState.AUTH_ERROR).event(PaymentEvent.PRE_AUTH_DECLINED);
     }
 
     @Override
-    public void configure(StateMachineConfigurationConfigurer<PaymentStates, PaymentEvents> config) throws Exception {
-        StateMachineListener<PaymentStates, PaymentEvents> adapter = new StateMachineListenerAdapter<>() {
+    public void configure(StateMachineConfigurationConfigurer<PaymentState, PaymentEvent> config) throws Exception {
+        StateMachineListener<PaymentState, PaymentEvent> adapter = new StateMachineListenerAdapter<>() {
             @Override
-            public void stateChanged(State<PaymentStates, PaymentEvents> from, State<PaymentStates, PaymentEvents> to) {
+            public void stateChanged(State<PaymentState, PaymentEvent> from, State<PaymentState, PaymentEvent> to) {
                 log.info("State Changed from: {}, to: {}", from, to);
             }
         };
