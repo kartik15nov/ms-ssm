@@ -16,10 +16,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
-    private static final String PAYMENT_ID_HEADER = "payment_id";
+    public static final String PAYMENT_ID_HEADER = "payment_id";
 
     private final PaymentRepository paymentRepository;
     private final StateMachineFactory<PaymentState, PaymentEvent> stateMachineFactory;
+    private final PaymentStateChangeInterceptor paymentStateChangeInterceptor;
 
     @Override
     public Payment newPayment(Payment payment) {
@@ -29,8 +30,10 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public StateMachine<PaymentState, PaymentEvent> preAuthorize(Long paymentId) {
+        //Update the state in the Database
         StateMachine<PaymentState, PaymentEvent> stateMachine = build(paymentId);
 
+        //Send the Event
         sendEvent(paymentId, stateMachine, PaymentEvent.PRE_AUTHORIZE);
 
         return null;
@@ -71,7 +74,10 @@ public class PaymentServiceImpl implements PaymentService {
         stateMachine.stop();
 
         stateMachine.getStateMachineAccessor()
-                .doWithAllRegions(function -> function.resetStateMachine(new DefaultStateMachineContext<>(payment.getPaymentState(), null, null, null)));
+                .doWithAllRegions(stateMachineAccess -> {
+                    stateMachineAccess.addStateMachineInterceptor(paymentStateChangeInterceptor);
+                    stateMachineAccess.resetStateMachine(new DefaultStateMachineContext<>(payment.getPaymentState(), null, null, null));
+                });
 
         stateMachine.start();
 
