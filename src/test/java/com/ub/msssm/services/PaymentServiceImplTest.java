@@ -5,6 +5,7 @@ import com.ub.msssm.domain.PaymentEvent;
 import com.ub.msssm.domain.PaymentState;
 import com.ub.msssm.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,5 +44,24 @@ class PaymentServiceImplTest {
         System.out.println("Should be PRE_AUTH");
         System.out.println(stateMachine.getState().getId());
         System.out.println(preAuthorizedPayment);
+    }
+
+    @Transactional
+    @RepeatedTest(10)
+    void authorize() {
+        Payment savedPayment = paymentService.newPayment(payment);
+        System.out.println("Should be NEW");
+        System.out.println(savedPayment.getPaymentState());
+
+        StateMachine<PaymentState, PaymentEvent> stateMachine = paymentService.preAuthorize(savedPayment.getId());
+
+        if (stateMachine.getState().getId().equals(PaymentState.PRE_AUTH)) {
+            System.out.println("Payment is pre authorized!");
+
+            StateMachine<PaymentState, PaymentEvent> authSm = paymentService.authorizePayment(savedPayment.getId());
+
+            System.out.println("Result of auth: " + authSm.getState().getId());
+        }else
+            System.out.println("Payment Failed pre-auth..!");
     }
 }
